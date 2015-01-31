@@ -1,19 +1,45 @@
 package com.jacob.starbuck;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.OnEditorAction;
+import timber.log.Timber;
 
 
-public class MainActivity extends ActionBarActivity {
+public class LoginActivity extends ActionBarActivity {
+  @InjectView(R.id.phone)
+  EditText phone;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    // skip login
+    if (Preferences.hasPhoneNum()) {
+      Timber.d("Skip login, has phone num");
+      CalendarActivity.startActivity(this, Preferences.getPhoneNum());
+      finish();
+      return;
+    }
+
     setContentView(R.layout.activity_main);
+    ButterKnife.inject(this);
   }
 
+  @OnEditorAction(R.id.phone)
+  boolean onEditorAction(KeyEvent key) {
+    Timber.d("complete");
+    CalendarActivity.startActivity(LoginActivity.this, phone.getText().toString().trim());
+    finish();
+    return true;
+  }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -29,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
     // as you specify a parent activity in AndroidManifest.xml.
     int id = item.getItemId();
 
-    //noinspection SimplifiableIfStatement
+    // noinspection SimplifiableIfStatement
     if (id == R.id.action_settings) {
       return true;
     }

@@ -17,9 +17,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.jakewharton.timber:timber:2.5.1'
+    compile 'com.jakewharton:butterknife:6.1.0'
+    compile 'com.android.support:support-v4:21.0.+'
+    compile 'cn.leancloud.android:avoscloud-sdk:2.6.+'  
+    compile 'cn.leancloud.android:avoscloud-statistics:2.6.+'
 }
