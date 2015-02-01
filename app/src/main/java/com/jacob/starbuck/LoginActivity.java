@@ -7,6 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.avos.avoscloud.AVAnalytics;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnEditorAction;
@@ -20,6 +22,7 @@ public class LoginActivity extends ActionBarActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    AVAnalytics.trackAppOpened(getIntent());
 
     // skip login
     if (Preferences.hasPhoneNum()) {
@@ -36,7 +39,9 @@ public class LoginActivity extends ActionBarActivity {
   @OnEditorAction(R.id.phone)
   boolean onEditorAction(KeyEvent key) {
     Timber.d("complete");
-    CalendarActivity.startActivity(LoginActivity.this, phone.getText().toString().trim());
+    String num = phone.getText().toString().trim();
+    Preferences.setPhoneNum(num);
+    CalendarActivity.startActivity(LoginActivity.this, num);
     finish();
     return true;
   }

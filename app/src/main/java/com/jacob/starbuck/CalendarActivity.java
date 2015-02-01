@@ -4,14 +4,26 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
 import com.timtak.widget.AnalogChronometer;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import timber.log.Timber;
 
 
@@ -21,6 +33,15 @@ public class CalendarActivity extends Activity {
 
   @InjectView(R.id.clock)
   AnalogChronometer clock;
+
+  @InjectView(R.id.slogan)
+  TextView slogan;
+
+  @InjectView(R.id.time)
+  TextView time;
+
+  @InjectView(R.id.date)
+  TextView date;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +53,58 @@ public class CalendarActivity extends Activity {
     String phone = intent.getStringExtra(EXTRA_PHONE);
     Timber.d("phone num is " + phone);
 
-    clock.setTime(15, 0, 0);
+    Calendar calendar = Calendar.getInstance();
+    int month = calendar.get(Calendar.MONTH);
+    int day = calendar.get(Calendar.DAY_OF_MONTH);
+    date.setText(month + 1 + "月" + day + "日");
+
+    SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+    String today = df.format(calendar.getTime());
+    Timber.d("today:" + today);
+
+    // Try find work time today
+    AVQuery<AVObject> query = new AVQuery<AVObject>("WorkTime");
+    query.whereEqualTo("phone", phone);
+    query.whereGreaterThanOrEqualTo("date", Integer.parseInt(today));
+    query.findInBackground(new FindCallback<AVObject>() {
+      public void done(List<AVObject> avObjects, AVException e) {
+        if (e == null) {
+          if (avObjects.size() > 1) {
+            Toast.makeText(CalendarActivity.this, "有多个日程安排，请联系管理员", Toast.LENGTH_SHORT).show();
+          }
+
+          if (avObjects.size() == 0) {
+            Toast.makeText(CalendarActivity.this, "还没有日程安排", Toast.LENGTH_SHORT).show();
+            showTips("您今天貌似不上班");
+            return;
+          }
+
+          AVObject avObject = avObjects.get(0);
+          showTime(avObject.getString("startHour"));
+
+        } else {
+          e.printStackTrace();
+          Toast.makeText(CalendarActivity.this, "查询失败", Toast.LENGTH_SHORT).show();
+        }
+      }
+    });
   }
 
+  private void showTime(String start) {
+    int hour = Integer.parseInt(start.split(":")[0]);
+    int min = Integer.parseInt(start.split(":")[1]);
+    clock.setTime(hour, min, 0);
+    clock.setVisibility(View.VISIBLE);
+    time.setVisibility(View.VISIBLE);
+    slogan.setVisibility(View.GONE);
+  }
+
+  private void showTips(String tips) {
+    clock.setVisibility(View.GONE);
+    time.setVisibility(View.GONE);
+    slogan.setVisibility(View.VISIBLE);
+    slogan.setText(tips);
+  }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -62,5 +132,12 @@ public class CalendarActivity extends Activity {
     Intent intent = new Intent(context, CalendarActivity.class);
     intent.putExtra(EXTRA_PHONE, num);
     context.startActivity(intent);
+  }
+
+  @OnClick(R.id.submit)
+  public void reset(View view) {
+    Preferences.setPhoneNum("");
+    startActivity(new Intent(this, LoginActivity.class));
+    finish();
   }
 }

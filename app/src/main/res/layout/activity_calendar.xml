@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
               xmlns:timtak="http://schemas.android.com/apk/res/com.jacob.starbuck"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
@@ -30,7 +30,8 @@
             android:text="上班时间"
             android:textColor="#99FFFFFF"
             android:textSize="40dp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/slogan"
@@ -41,26 +42,18 @@
             android:text="The best coffee\nFor the best YOU"
             android:textColor="#FFFFFF"
             android:textSize="30dp"
-            android:textStyle="bold"
-            android:visibility="gone"/>
+            android:textStyle="bold"/>
+
         <com.timtak.widget.AnalogChronometer
             android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            timtak:dial="@drawable/dial"
+            android:layout_alignParentRight="true"
             android:layout_below="@id/time"
-            timtak:hour="3"
-            android:layout_alignParentRight="true"/>
-
-        <!--<AnalogClock-->
-            <!--android:id="@+id/clock"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_below="@id/time"-->
-            <!--android:layout_alignParentRight="true"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--/>-->
+            android:layout_marginTop="15dp"
+            android:visibility="gone"
+            timtak:dial="@drawable/dial"
+            timtak:hour="3"/>
     </RelativeLayout>
 
     <RelativeLayout
