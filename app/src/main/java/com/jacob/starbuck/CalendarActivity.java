@@ -43,6 +43,9 @@ public class CalendarActivity extends Activity {
   @InjectView(R.id.date)
   TextView date;
 
+  @InjectView(R.id.today)
+  TextView todayText;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -50,7 +53,7 @@ public class CalendarActivity extends Activity {
     ButterKnife.inject(this);
 
     Intent intent = getIntent();
-    String phone = intent.getStringExtra(EXTRA_PHONE);
+    final String phone = intent.getStringExtra(EXTRA_PHONE);
     Timber.d("phone num is " + phone);
 
     Calendar calendar = Calendar.getInstance();
@@ -62,10 +65,54 @@ public class CalendarActivity extends Activity {
     String today = df.format(calendar.getTime());
     Timber.d("today:" + today);
 
+    todayText.setText("今天");
+
+    // Try find work time today
+    final AVQuery<AVObject> query = new AVQuery<AVObject>("WorkTime");
+    query.whereEqualTo("phone", phone);
+    query.whereEqualTo("date", Integer.parseInt(today));
+    query.findInBackground(new FindCallback<AVObject>() {
+      public void done(List<AVObject> avObjects, AVException e) {
+        if (e == null) {
+          if (avObjects.size() > 1) {
+            // Toast.makeText(CalendarActivity.this, "有多个日程安排，请联系管理员", Toast.LENGTH_SHORT).show();
+          }
+
+          if (avObjects.size() == 0) {
+            // Toast.makeText(CalendarActivity.this, "今天还没有日程安排，看看明天", Toast.LENGTH_SHORT).show();
+            showTips("您今天貌似不上班");
+            queryTomorrow(phone);
+            return;
+          }
+
+          AVObject avObject = avObjects.get(0);
+          showTime(avObject.getString("startHour"));
+
+        } else {
+          e.printStackTrace();
+          Toast.makeText(CalendarActivity.this, "查询失败", Toast.LENGTH_SHORT).show();
+        }
+      }
+    });
+  }
+
+  private void queryTomorrow(String phone) {
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.DAY_OF_MONTH, 1);
+    int month = calendar.get(Calendar.MONTH);
+    int day = calendar.get(Calendar.DAY_OF_MONTH);
+    date.setText(month + 1 + "月" + day++ + "日");
+
+    todayText.setText("明天");
+
+    SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+    String today = df.format(calendar.getTime());
+    Timber.d("today:" + today);
+
     // Try find work time today
     AVQuery<AVObject> query = new AVQuery<AVObject>("WorkTime");
     query.whereEqualTo("phone", phone);
-    query.whereGreaterThanOrEqualTo("date", Integer.parseInt(today));
+    query.whereEqualTo("date", Integer.parseInt(today));
     query.findInBackground(new FindCallback<AVObject>() {
       public void done(List<AVObject> avObjects, AVException e) {
         if (e == null) {
@@ -74,8 +121,8 @@ public class CalendarActivity extends Activity {
           }
 
           if (avObjects.size() == 0) {
-            Toast.makeText(CalendarActivity.this, "还没有日程安排", Toast.LENGTH_SHORT).show();
-            showTips("您今天貌似不上班");
+            Toast.makeText(CalendarActivity.this, "这两天还没有日程安排", Toast.LENGTH_SHORT).show();
+            showTips("您这两天貌似不上班");
             return;
           }
 
